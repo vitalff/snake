@@ -2,85 +2,87 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐍 Snake Game - Telegram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐍 Snake Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .game-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 400px;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+            position: fixed;
             width: 100%;
         }
 
+        .game-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            max-width: 100%;
+        }
+
         .header {
-            margin-bottom: 20px;
+            flex-shrink: 0;
+            padding: 10px 0;
         }
 
         h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 8px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .score-container {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
             border-radius: 10px;
-        }
-
-        .score {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: bold;
         }
 
-        .high-score {
-            font-size: 16px;
-            opacity: 0.8;
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 0;
+            margin: 5px 0;
         }
 
         #gameCanvas {
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             background: #000;
-            display: block;
-            margin: 0 auto 20px;
+            max-width: 95vw;
+            max-height: 50vh;
+            width: auto;
+            height: auto;
         }
 
         .controls {
-            margin: 20px 0;
+            flex-shrink: 0;
+            margin: 5px 0;
         }
 
         .control-row {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin: 8px 0;
+            gap: 8px;
+            margin: 5px 0;
         }
 
         .control-btn {
@@ -91,23 +93,20 @@
             background: rgba(255, 255, 255, 0.2);
             color: white;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             min-width: 60px;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+            touch-action: manipulation;
         }
 
         .control-btn:active {
-            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
         }
 
         .action-buttons {
             display: flex;
-            gap: 10px;
-            margin: 15px 0;
+            gap: 8px;
+            margin: 8px 0;
         }
 
         .action-btn {
@@ -119,11 +118,7 @@
             background: rgba(255, 255, 255, 0.25);
             color: white;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            background: rgba(255, 255, 255, 0.35);
+            font-weight: bold;
         }
 
         .btn-start {
@@ -134,54 +129,121 @@
             background: linear-gradient(135deg, #ff9800, #f57c00);
         }
 
-        .instructions {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
         .game-over {
             display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .game-over-content {
+            background: rgba(255, 255, 255, 0.1);
             padding: 30px;
-            border-radius: 15px;
+            border-radius: 20px;
             text-align: center;
-            z-index: 100;
+            backdrop-filter: blur(10px);
+            max-width: 90%;
         }
 
         .game-over h2 {
             color: #ff4444;
             margin-bottom: 15px;
+            font-size: 28px;
         }
 
-        .mobile-warning {
+        .swipe-controls {
             display: none;
-            background: #ffeb3b;
-            color: #333;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            touch-action: none;
         }
 
-        @media (max-width: 480px) {
-            .game-container {
-                padding: 15px;
+        .swipe-region {
+            position: absolute;
+            background: transparent;
+        }
+
+        .swipe-up { top: 0; left: 25%; width: 50%; height: 25%; }
+        .swipe-down { bottom: 0; left: 25%; width: 50%; height: 25%; }
+        .swipe-left { top: 25%; left: 0; width: 25%; height: 50%; }
+        .swipe-right { top: 25%; right: 0; width: 25%; height: 50%; }
+
+        /* Мобильная оптимизация */
+        @media (max-height: 700px) {
+            .header {
+                padding: 5px 0;
             }
             
             h1 {
-                font-size: 24px;
+                font-size: 20px;
+                margin-bottom: 5px;
+            }
+            
+            .score-container {
+                font-size: 14px;
+                padding: 6px 10px;
             }
             
             .control-btn {
-                padding: 12px 15px;
+                padding: 12px 16px;
                 font-size: 18px;
                 min-width: 50px;
+            }
+            
+            .action-btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            #gameCanvas {
+                max-height: 45vh;
+            }
+            
+            .controls {
+                margin: 2px 0;
+            }
+        }
+
+        /* Горизонтальная ориентация */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .game-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .header {
+                width: 100%;
+                flex-shrink: 0;
+            }
+            
+            .canvas-container {
+                width: 60%;
+                height: 70vh;
+            }
+            
+            .controls {
+                width: 40%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            
+            .action-buttons {
+                order: -1;
             }
         }
     </style>
@@ -196,15 +258,14 @@
             </div>
         </div>
 
-        <div class="mobile-warning" id="mobileWarning">
-            📱 Используй кнопки для управления на телефоне!
+        <div class="canvas-container">
+            <canvas id="gameCanvas"></canvas>
         </div>
 
-        <canvas id="gameCanvas" width="350" height="350"></canvas>
-
         <div class="action-buttons">
-            <button class="action-btn btn-start" onclick="startGame()">🎮 Start Game</button>
+            <button class="action-btn btn-start" onclick="startGame()">🎮 Start</button>
             <button class="action-btn btn-pause" onclick="togglePause()">⏸️ Pause</button>
+            <button class="action-btn" onclick="toggleSwipeControls()">👆 Swipe</button>
         </div>
 
         <div class="controls">
@@ -217,17 +278,24 @@
                 <button class="control-btn" onclick="changeDirection('right')">➡️</button>
             </div>
         </div>
-
-        <div class="instructions">
-            <strong>Управление:</strong> Кнопки или стрелки на клавиатуре<br>
-            <strong>Цель:</strong> Собирай еду 🍎 и становись длиннее!
-        </div>
     </div>
 
+    <!-- Свайп-управление -->
+    <div class="swipe-controls" id="swipeControls">
+        <div class="swipe-region swipe-up" ontouchstart="changeDirection('up')"></div>
+        <div class="swipe-region swipe-down" ontouchstart="changeDirection('down')"></div>
+        <div class="swipe-region swipe-left" ontouchstart="changeDirection('left')"></div>
+        <div class="swipe-region swipe-right" ontouchstart="changeDirection('right')"></div>
+    </div>
+
+    <!-- Game Over экран -->
     <div class="game-over" id="gameOver">
-        <h2>💀 Game Over!</h2>
-        <p>Your score: <span id="finalScore">0</span></p>
-        <button class="action-btn btn-start" onclick="restartGame()">🔄 Play Again</button>
+        <div class="game-over-content">
+            <h2>💀 Game Over!</h2>
+            <p style="margin: 15px 0; font-size: 18px;">Your score: <span id="finalScore">0</span></p>
+            <button class="action-btn btn-start" onclick="restartGame()" style="margin: 10px;">🔄 Play Again</button>
+            <button class="action-btn" onclick="toggleSwipeControls()" style="margin: 10px;">👆 Change Controls</button>
+        </div>
     </div>
 
     <script>
@@ -235,10 +303,7 @@
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.expand();
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => {
-                tg.close();
-            });
+            tg.enableClosingConfirmation();
         }
 
         // Элементы DOM
@@ -248,11 +313,23 @@
         const highScoreElement = document.getElementById('highScore');
         const finalScoreElement = document.getElementById('finalScore');
         const gameOverElement = document.getElementById('gameOver');
-        const mobileWarningElement = document.getElementById('mobileWarning');
+        const swipeControlsElement = document.getElementById('swipeControls');
+
+        // Автоматическая настройка размера canvas
+        function setupCanvas() {
+            const container = document.querySelector('.canvas-container');
+            const size = Math.min(container.clientWidth, container.clientHeight * 0.8);
+            
+            // Устанавливаем размеры canvas
+            canvas.width = size;
+            canvas.height = size;
+            
+            console.log('Canvas size:', canvas.width, 'x', canvas.height);
+        }
 
         // Настройки игры
         const GRID_SIZE = 20;
-        const TILE_COUNT = canvas.width / GRID_SIZE;
+        let TILE_COUNT;
 
         // Переменные игры
         let snake = [];
@@ -264,14 +341,13 @@
         let gameRunning = false;
         let gamePaused = false;
         let gameLoop;
-
-        // Показываем предупреждение на мобильных
-        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            mobileWarningElement.style.display = 'block';
-        }
+        let swipeControlsEnabled = false;
 
         // Инициализация игры
         function initGame() {
+            setupCanvas();
+            TILE_COUNT = Math.floor(canvas.width / GRID_SIZE);
+            
             snake = [{x: Math.floor(TILE_COUNT/2), y: Math.floor(TILE_COUNT/2)}];
             dx = 1;
             dy = 0;
@@ -306,26 +382,12 @@
             ctx.fillStyle = '#1a1a1a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Отрисовка сетки
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i < TILE_COUNT; i++) {
-                for (let j = 0; j < TILE_COUNT; j++) {
-                    ctx.strokeRect(i * GRID_SIZE, j * GRID_SIZE, GRID_SIZE, GRID_SIZE);
-                }
-            }
-            
             // Отрисовка змейки
             snake.forEach((segment, index) => {
                 if (index === 0) {
                     // Голова змейки
                     ctx.fillStyle = '#4CAF50';
                     ctx.fillRect(segment.x * GRID_SIZE, segment.y * GRID_SIZE, GRID_SIZE - 1, GRID_SIZE - 1);
-                    
-                    // Глаза
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(segment.x * GRID_SIZE + 4, segment.y * GRID_SIZE + 4, 3, 3);
-                    ctx.fillRect(segment.x * GRID_SIZE + 12, segment.y * GRID_SIZE + 4, 3, 3);
                 } else {
                     // Тело змейки
                     ctx.fillStyle = '#8BC34A';
@@ -344,10 +406,6 @@
                 Math.PI * 2
             );
             ctx.fill();
-            
-            // Листик у яблока
-            ctx.fillStyle = '#4CAF50';
-            ctx.fillRect(food.x * GRID_SIZE + GRID_SIZE/2 - 2, food.y * GRID_SIZE - 2, 4, 6);
         }
 
         // Обновление игры
@@ -388,7 +446,7 @@
                 
                 generateFood();
                 
-                // Вибрация при съедании (если поддерживается)
+                // Вибрация при съедании
                 if (navigator.vibrate) {
                     navigator.vibrate(50);
                 }
@@ -437,34 +495,16 @@
             }
         }
 
-        // Управление с клавиатуры
-        document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'w':
-                case 'W':
-                    changeDirection('up');
-                    break;
-                case 'ArrowDown':
-                case 's':
-                case 'S':
-                    changeDirection('down');
-                    break;
-                case 'ArrowLeft':
-                case 'a':
-                case 'A':
-                    changeDirection('left');
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                case 'D':
-                    changeDirection('right');
-                    break;
-                case ' ':
-                    togglePause();
-                    break;
-            }
-        });
+        // Переключение свайп-управления
+        function toggleSwipeControls() {
+            swipeControlsEnabled = !swipeControlsEnabled;
+            swipeControlsElement.style.display = swipeControlsEnabled ? 'block' : 'none';
+            
+            // Показываем уведомление
+            alert(swipeControlsEnabled ? 
+                '👆 Swipe controls enabled! Touch screen edges to move.' : 
+                '🎮 Button controls enabled!');
+        }
 
         // Старт игры
         function startGame() {
@@ -475,7 +515,7 @@
             initGame();
             
             if (gameLoop) clearInterval(gameLoop);
-            gameLoop = setInterval(updateGame, 120);
+            gameLoop = setInterval(updateGame, 150);
         }
 
         // Пауза/продолжение
@@ -500,35 +540,61 @@
             clearInterval(gameLoop);
             
             finalScoreElement.textContent = score;
-            gameOverElement.style.display = 'block';
-            
-            // Отправляем результат в Telegram
-            if (tg && tg.sendData) {
-                tg.sendData(JSON.stringify({
-                    action: 'game_over',
-                    score: score,
-                    highScore: highScore
-                }));
-            }
+            gameOverElement.style.display = 'flex';
         }
 
         // Инициализация при загрузке
         window.addEventListener('load', () => {
+            setupCanvas();
             highScoreElement.textContent = highScore;
             initGame();
             
             // Автостарт при открытии в Telegram
             if (tg) {
-                setTimeout(startGame, 1000);
+                setTimeout(startGame, 500);
             }
+        });
+
+        // Обработка изменения размера окна
+        window.addEventListener('resize', setupCanvas);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setupCanvas, 100);
         });
 
         // Предотвращение скролла на мобильных
         document.addEventListener('touchmove', (e) => {
-            if (gameRunning) {
-                e.preventDefault();
-            }
+            e.preventDefault();
         }, { passive: false });
+
+        // Управление свайпами для больших экранов
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (!swipeControlsEnabled) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            // Определяем направление свайпа
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Горизонтальный свайп
+                if (diffX > 0) changeDirection('right');
+                else changeDirection('left');
+            } else {
+                // Вертикальный свайп
+                if (diffY > 0) changeDirection('down');
+                else changeDirection('up');
+            }
+        });
     </script>
 </body>
 </html>
